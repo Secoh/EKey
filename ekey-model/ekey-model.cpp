@@ -32,7 +32,18 @@ static const int recordSize     = 1024;
 static const int recordAddrSize = 2;
 static const int crcSize        = 4;
 
-enum class KeyFunction { exchange_key=0, write_key, erase_keys, prime_keys, get_noise, put_record, get_record, get_status };
+enum class KeyFunction {
+    prime_keys = 0x11,
+    write_key  = 0x22,
+    erase_keys = 0x33,
+    get_noise  = 0x44,
+    get_record = 0x55,
+    put_record = 0x66 };
+
+static const unsigned MAX_BUF_LEN = 1536;
+uint8_t BUF[MAX_BUF_LEN];
+
+/*
 struct FunctionDescr
 {
     KeyFunction opcode;
@@ -72,10 +83,29 @@ static constexpr size_t svc_ifacedim()
 }
 
 static const size_t MinBufferLength = svc_ifacedim();
+*/
+
+// transform between Base64 interface and hardware interface
+bool hdw_getchar(sklib::base64_type*, int& ch)
+{
+    uint8_t data=0;
+    if (!hdw_getchar(data)) return false;
+    ch = data;
+    return true;
+}
+void hwd_putchar(sklib::base64_type*, int ch)
+{
+    hwd_putchar((uint8_t)ch);
+}
 
 int main()
 {
-    sklib::stream_tcpip_type IO(true, WS_EKEY_PORT);
+    sklib::base64_type IO(hdw_getchar, hwd_putchar);
+    sklib::crc_16_ccitt data_crc;
 
-    std::cout << "Hello World!\n";
+    while (true)
+    {
+        // command loop
+
+    }
 }

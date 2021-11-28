@@ -14,7 +14,7 @@
 
 int main()
 {
-    sklib::stream_tcpip_type IO(false, WS_EKEY_PORT);
+//    sklib::stream_tcpip_type IO(false, WS_EKEY_PORT);
 
     std::cout << "Hello World!\n";
 }
