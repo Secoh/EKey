@@ -10,8 +10,72 @@
 #include <iostream>
 
 #include <SKLib/sklib.hpp>
+#include "ekey-model.h"
+
+#include "hardware_model.h"
+
+/*
+* input/output:
+*   base64= string encoding 256 bytes + 4 byte CRC32 => find the match in table, if format and CRC are correct, and key is present, return response, another 256 bytes + their 4 byte CRC32
+*   write=base64= 1 byte address, 256 bytes key, 256 bytes response, 4 byte CRC32 of the transmission => raw write into the key table (verifies CRC)
+*   erase= => delete all entries in the table
+*   prime=base64= 256 bytes vector + 4 byte CRC32 => loads precalculated 256 byte permutation vector for use (verified CRC), replacing old one if any
+*   noise= => calculates and prints 256 random bytes + 4 byte CRC32
+*   put=base64= 2 bytes address, 1024 bytes record, 4 bytes CRC32 => write to "file" memory (vierified CRC), granularity is 1 kb.
+*   get=base64= 2 bytes address, 4 bytes CRC32 => read from address 1024 bytes and return with 4 bytes CRC
+*   status= => return error status, including CRC test
+*/
+
+static const int keySize        = 256;
+static const int keyAddrSize    = 1;
+static const int recordSize     = 1024;
+static const int recordAddrSize = 2;
+static const int crcSize        = 4;
+
+enum class KeyFunction { exchange_key=0, write_key, erase_keys, prime_keys, get_noise, put_record, get_record, get_status };
+struct FunctionDescr
+{
+    KeyFunction opcode;
+    const char* command;
+    size_t data_length;    // input data; not including CRC-32 or trailing '='
+};
+
+static constexpr FunctionDescr Interface[] =
+{
+    { KeyFunction::exchange_key, "",       sklib::base64_type::encoded_length(keySize + crcSize)        },
+    { KeyFunction::write_key,    "write",  sklib::base64_type::encoded_length(keyAddrSize + 2*keySize + crcSize) },
+    { KeyFunction::erase_keys,   "erase",  0                                                            },
+    { KeyFunction::prime_keys,   "prime",  sklib::base64_type::encoded_length(keySize + crcSize)        },
+    { KeyFunction::get_noise,    "noise",  0                                                            },
+    { KeyFunction::put_record,   "put",    sklib::base64_type::encoded_length(recordAddrSize + recordSize + crcSize) },
+    { KeyFunction::get_record,   "get",    sklib::base64_type::encoded_length(recordAddrSize + crcSize) },
+    { KeyFunction::get_status,   "status", 0                                                            }
+};
+
+static const size_t InterfaceSize = sizeof(Interface) / sizeof(Interface[0]);
+
+static constexpr size_t svc_strlen(const char* str)
+{
+    const char* str_org = str;
+    while (*str) str++;
+    return str - str_org;
+}
+
+static constexpr size_t svc_ifacedim()
+{
+    size_t R = 0;
+    for (size_t k=0; k<InterfaceSize; k++)
+    {
+        R = std::max(std::max<size_t>(Interface[k].data_length, svc_strlen(Interface[k].command)), R);
+    }
+    return R;
+}
+
+static const size_t MinBufferLength = svc_ifacedim();
 
 int main()
 {
+    sklib::stream_tcpip_type IO(true, WS_EKEY_PORT);
+
     std::cout << "Hello World!\n";
 }

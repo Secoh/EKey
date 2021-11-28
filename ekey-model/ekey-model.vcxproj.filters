@@ -21,5 +21,16 @@
     <ClCompile Include="sklib-compilation-unit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hardware_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ekey-model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hardware_model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

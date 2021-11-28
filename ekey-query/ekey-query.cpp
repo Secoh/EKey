@@ -10,8 +10,11 @@
 #include <iostream>
 
 #include <SKLib/sklib.hpp>
+#include "../ekey-model/ekey-model.h"
 
 int main()
 {
+    sklib::stream_tcpip_type IO(false, WS_EKEY_PORT);
+
     std::cout << "Hello World!\n";
 }

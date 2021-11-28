@@ -170,7 +170,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ekey-model.cpp" />
+    <ClCompile Include="hardware_model.cpp" />
     <ClCompile Include="sklib-compilation-unit.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ekey-model.h" />
+    <ClInclude Include="hardware_model.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

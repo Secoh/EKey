@@ -1,0 +1,21 @@
+##command#crc16##=#####content####crc32##=
+
+0 - exchange 256 byte key => returns 256 byte payload
+1 - prime with 256 rotator
+2 - write key pair: 1 byte address, 256 byte key, 256 byte payload
+3 - erase all
+4 - get 256 bytes of noise
+5 - read record: 2 bytes address => returns 1024 bytes
+6 - write record: 2 bytes address, 1024 bytes block
+
+hardware model
+
+0) startup
+1) serial read or nothing
+2) serial write
+3) get key pair address by index
+4) write key pair from RAM by index
+5) get noise byte
+6) get block by index
+7) write block from RAM by index
+
