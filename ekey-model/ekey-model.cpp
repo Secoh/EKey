@@ -43,6 +43,13 @@ enum class KeyFunction {
 static const unsigned MAX_BUF_LEN = 1536;
 uint8_t BUF[MAX_BUF_LEN];
 
+void func_prime_keys();
+void func_write_key();
+void func_erase_keys();
+void func_get_noise();
+void func_get_record();
+void func_put_record();
+
 /*
 struct FunctionDescr
 {
@@ -98,14 +105,44 @@ void hwd_putchar(sklib::base64_type*, int ch)
     hwd_putchar((uint8_t)ch);
 }
 
+// common code to form base64 packets on serial stream
+// unsigned read_input(sklib::base64_type& IO, uint8_t* buffer, unsigned block_len, unsigned alt_len = 0)
+// void write_output(sklib::base64_type& IO, uint8_t* buffer, unsigned length)
+#include"packet-encoder-code.h"
+
 int main()
 {
     sklib::base64_type IO(hdw_getchar, hwd_putchar);
-    sklib::crc_16_ccitt data_crc;
 
     while (true)
     {
+        int sym_in = EOF;
+
         // command loop
+
+        auto L = read_input(IO, BUF, 3, 256);
+        if (!L) continue;
+
+        if (L == 256)
+        {
+            // search
+            write_output(IO, hdw_get_block_ptr(0), 256);
+        }
+        else
+        {
+            switch (BUF[0])
+            {
+            case (int)KeyFunction::prime_keys:  // remember rotator, build index
+            }
+
+        }
 
     }
 }
+
+void func_prime_keys();
+void func_write_key();
+void func_erase_keys();
+void func_get_noise();
+void func_get_record();
+void func_put_record();

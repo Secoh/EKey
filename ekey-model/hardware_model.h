@@ -7,10 +7,9 @@
 // Software is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //
 
-/* This header is for firmware simulator communicating with key manager via TCP sockets.
-   The firmware will use hardware I/O specific to Atmel Cortex M0+ platform with USB serial.
-   The logic part is the same for both firmware and simulator.
-*/
+// This header is for firmware simulator communicating with key manager via TCP sockets.
+// The firmware will use hardware I/O specific to Atmel Cortex M0+ platform with USB serial.
+// The logic part is the same for both firmware and simulator.
 
 #pragma once
 

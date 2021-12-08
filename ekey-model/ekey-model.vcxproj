@@ -176,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="ekey-model.h" />
     <ClInclude Include="hardware_model.h" />
+    <ClInclude Include="packet-encoder-code.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
