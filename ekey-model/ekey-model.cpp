@@ -12,7 +12,56 @@
 #include <SKLib/sklib.hpp>
 #include "ekey-model.h"
 
+// Shared IO settings, common IO functions
+#include "interface.h"
+
+// KEY_COUNT, KEY_SIZE     - key storage
+// BLOCK_COUNT, BLOCK_SIZE - file storage
 #include "hardware_model.h"
+
+static_assert(KEY_SIZE == sklib::supplement::bits_data_mask<uint8_t>() + 1, "Key size and uint8_t range must be the same");
+static_assert(KEY_COUNT <= sklib::supplement::bits_data_mask<uint8_t>() + 1, "Key count must be addressable by uint8_t");
+
+static constexpr unsigned BUFFER_SIZE = 1536;
+
+// transformation of received 
+uint8_t KeyPermutation[KEY_SIZE];
+uint8_t KeyRedirect[KEY_COUNT];
+uint8_t BUFFER[std::max({ BUFFER_SIZE, Interface::read_buffer_size(KEY_SIZE), Interface::read_buffer_size(BLOCK_SIZE) })];
+
+// given the current Permutation and Hardware storage (received by hdw_get_key_ptr() function)
+
+bool compare_key_is_pattern_A_less_than_B(const uint8_t* pattern_A, uint8_t idx_B)
+{
+    uint8_t* key_B = hdw_get_key_ptr(idx_B);
+
+    for (unsigned k = 0; k < KEY_SIZE; k++)
+    {
+        if (pattern_A[KeyPermutation[k]] < key_B[KeyPermutation[k]]) return true;
+    }
+
+    return false;
+}
+
+bool compare_keys_is_A_less_than_B(uint8_t idx_A, uint8_t idx_B)
+{
+    return compare_key_is_pattern_A_less_than_B(hdw_get_key_ptr(idx_A), idx_B);
+}
+
+void recalculate_key_sorting()
+{
+    for (unsigned k = 0; k < KEY_COUNT; k++) KeyRedirect[k] = k;
+    std::make_heap(KeyRedirect, KeyRedirect + KEY_COUNT, compare_keys_is_A_less_than_B);
+    std::sort_heap(KeyRedirect, KeyRedirect + KEY_COUNT, compare_keys_is_A_less_than_B);
+}
+
+// 0..KEY_COUNT-1 => index of the Key; payload is offset by KEY_SIZE
+// return NEGATIVE if not found
+int find_key_index(uint8_t* pattern)
+{
+    int idx_K = (int)(std::upper_bound(KeyPermutation, KeyPermutation + KEY_COUNT, pattern, compare_key_is_pattern_A_less_than_B) - KeyPermutation);
+    return ((idx_K == KEY_COUNT) ? -1 : idx_K);
+}
 
 /*
 * input/output:
@@ -40,8 +89,6 @@ enum class KeyFunction {
     get_record = 0x55,
     put_record = 0x66 };
 
-static const unsigned MAX_BUF_LEN = 1536;
-uint8_t BUF[MAX_BUF_LEN];
 
 void func_prime_keys();
 void func_write_key();
@@ -92,27 +139,17 @@ static constexpr size_t svc_ifacedim()
 static const size_t MinBufferLength = svc_ifacedim();
 */
 
-// transform between Base64 interface and hardware interface
-bool hdw_getchar(sklib::base64_type*, int& ch)
-{
-    uint8_t data=0;
-    if (!hdw_getchar(data)) return false;
-    ch = data;
-    return true;
-}
-void hwd_putchar(sklib::base64_type*, int ch)
-{
-    hwd_putchar((uint8_t)ch);
-}
-
-// common code to form base64 packets on serial stream
-// unsigned read_input(sklib::base64_type& IO, uint8_t* buffer, unsigned block_len, unsigned alt_len = 0)
-// void write_output(sklib::base64_type& IO, uint8_t* buffer, unsigned length)
-#include"packet-encoder-code.h"
 
 int main()
 {
-    sklib::base64_type IO(hdw_getchar, hwd_putchar);
+    // initialization
+
+    Interface Serial(hdw_getchar, hwd_putchar);
+
+    for (unsigned k = 0; k < KEY_SIZE; k++) KeyPermutation[k] = (uint8_t)k;
+    recalculate_key_sorting();
+
+    // main loop
 
     while (true)
     {
@@ -120,19 +157,19 @@ int main()
 
         // command loop
 
-        auto L = read_input(IO, BUF, 3, 256);
+        auto L = Serial.read_input(BUFFER, 1, KEY_SIZE);
         if (!L) continue;
 
-        if (L == 256)
+        if (L == KEY_SIZE)
         {
             // search
-            write_output(IO, hdw_get_block_ptr(0), 256);
+            Serial.write_output(hdw_get_block_ptr(0), KEY_SIZE);
         }
-        else
+        else if (L == 1)
         {
-            switch (BUF[0])
+            switch (BUFFER[0])
             {
-            case (int)KeyFunction::prime_keys:  // remember rotator, build index
+            case (int)KeyFunction::prime_keys:; // remember rotator, build index
             }
 
         }

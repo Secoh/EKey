@@ -170,7 +170,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ekey-query.cpp" />
+    <ClCompile Include="serial_io.cpp" />
     <ClCompile Include="sklib-compilation-unit.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="serial_io.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

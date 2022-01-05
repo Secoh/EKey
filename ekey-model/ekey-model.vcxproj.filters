@@ -32,7 +32,7 @@
     <ClInclude Include="hardware_model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="packet-encoder-code.h">
+    <ClInclude Include="interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

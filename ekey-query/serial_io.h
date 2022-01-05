@@ -7,14 +7,13 @@
 // Software is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //
 
-#include <iostream>
+#pragma once
+#include "../ekey-model/interface.h"
 
-#include <SKLib/sklib.hpp>
-#include "../ekey-model/ekey-model.h"
+// communications counterpart for ekey-model project
+// unlike file I/O, there is no EOF condition in USB-Serial terminal looking from inside
+// getchar returns true if charachter has arrived - stored in ch
 
-int main()
-{
-//    sklib::stream_tcpip_type IO(false, WS_EKEY_PORT);
-
-    std::cout << "Hello World!\n";
-}
+bool ser_autodetect();
+bool ser_getchar(int& ch);
+void ser_putchar(int ch);

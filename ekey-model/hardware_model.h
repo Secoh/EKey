@@ -12,27 +12,7 @@
 // The logic part is the same for both firmware and simulator.
 
 #pragma once
-
-// data sizes
-
-static const unsigned KEY_COUNT = sklib::OCTET_ADDRESS_SPAN;    // keys are arranged in pairs
-static const unsigned KEY_SIZE  = sklib::OCTET_ADDRESS_SPAN;
-
-static const unsigned BLOCK_COUNT = 32;         // blocks are "file"
-static const unsigned BLOCK_SIZE  = 1024;       // 1 kb
-
-// debug modes - enable one of the following to use the appropriate mode
-// target platform is Atmel Cortex M0+
-
-//#define REAL_HARDRDWARE
-#define EMULATION_SOCKET
-
-// communications
-
-static constexpr unsigned SOCKET_EKEY_PORT = 13579;
-static constexpr unsigned SERIAL_SPEED  = 9600;
-static constexpr unsigned USB_VID       = 0xF055u;   // "FOSS"
-static constexpr unsigned USB_PID       = 0xE4E7u;   // "EKEY"
+#include "interface.h"
 
 // references to hardware-specific functions (or emulation)
 
@@ -49,6 +29,6 @@ void hdw_store_block(uint8_t idx, uint8_t* block);
 // unlike file I/O, there is no EOF condition in USB-Serial terminal looking from inside
 // getchar returns true if charachter has arrived - stored in ch
 
-bool hdw_getchar(uint8_t& ch);
-void hwd_putchar(uint8_t ch);
+bool hdw_getchar(int& ch);
+void hwd_putchar(int ch);
 

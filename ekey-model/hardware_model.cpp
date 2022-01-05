@@ -12,26 +12,6 @@
 
 // -------------------------------------------------------------
 
-#if defined(EMULATION_SOCKET)
-#ifdef REAL_HARDRDWARE
-#error EKEY ** INTERNAL ERROR ** Cannot declare both Emulator and Hardware at the same time
-#endif
-
-static std::shared_ptr<uint8_t> KEY_STORE_ROOT;
-static std::shared_ptr<uint8_t> BLOCK_STORE_ROOT;
-static sklib::stream_tcpip_type SOCKET_IO(false, SOCKET_EKEY_PORT);
-static bool MODE_LISTEN = true;
-
-#elif defined(REAL_HARDRDWARE)
-
-#error Not implemented
-
-#else
-#error Invalid Target
-#endif
-
-// -------------------------------------------------------------
-
 void hdw_init();
 struct self_init { self_init() { hdw_init(); } };
 static self_init CHECK;
@@ -40,10 +20,15 @@ static self_init CHECK;
 
 #ifdef EMULATION_SOCKET
 
+static std::shared_ptr<uint8_t> KEY_STORE_ROOT;
+static std::shared_ptr<uint8_t> BLOCK_STORE_ROOT;
+static sklib::stream_tcpip_type SOCKET_IO(true, SOCKET_EKEY_PORT);  // server mode
+static bool MODE_RECEIVE = true;
+
 void hdw_init()
 {
     srand((unsigned)time(nullptr));
-    KEY_STORE_ROOT = std::shared_ptr<uint8_t>(new uint8_t[2*KEY_COUNT*KEY_SIZE]());
+    KEY_STORE_ROOT = std::shared_ptr<uint8_t>(new uint8_t[2*KEY_COUNT*KEY_SIZE]());      // arrays are initialized with all 0-s
     BLOCK_STORE_ROOT = std::shared_ptr<uint8_t>(new uint8_t[BLOCK_COUNT*BLOCK_SIZE]());
 }
 
@@ -74,32 +59,34 @@ void hdw_store_block(uint8_t idx, uint8_t *block)
     memcpy(hdw_get_block_ptr(idx), block, BLOCK_SIZE);
 }
 
-bool hdw_getchar(uint8_t& ch)
+bool hdw_getchar(int& ch)
 {
-    auto R = SOCKET_IO.read(&ch);
+    uint8_t c = ' ';
+    auto R = SOCKET_IO.read(&c);
     if (!R) return false;
 
-    if (!MODE_LISTEN)
+    if (!MODE_RECEIVE)
     {
-        MODE_LISTEN = true;
+        MODE_RECEIVE = true;
         fputs("\ninp> ", stdout);
     }
 
-    putchar(ch);
+    putchar(c);
     fflush(stdout);
 
+    ch = ((c<' ') ? EOF : c);
     return true;
 }
 
-void hwd_putchar(uint8_t ch)
+void hwd_putchar(int ch)
 {
-    if (MODE_LISTEN)
+    if (MODE_RECEIVE)
     {
-        MODE_LISTEN = false;
+        MODE_RECEIVE = false;
         fputs("\nout> ", stdout);
     }
 
-    putc(SOCKET_IO.write(ch) ? ch : '#');
+    putc(SOCKET_IO.write(ch) ? ch : '#', stdout);
     fflush(stdout);
 }
 
