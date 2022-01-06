@@ -10,11 +10,38 @@
 #include <iostream>
 
 #include <SKLib/sklib.hpp>
-#include "../ekey-model/ekey-model.h"
+
+// Shared IO settings, common IO functions, KEY, BLOCK sizes, counts
+#include "../ekey-model/interface.h"
+
+// serial I/O actual functions
+#include "serial_io.h"
+
+static constexpr unsigned BUFFER_SIZE = 1536;
+uint8_t BUFFER[std::max({ BUFFER_SIZE, Interface::read_buffer_size(KEY_SIZE), Interface::read_buffer_size(BLOCK_SIZE) })];
 
 int main()
 {
-//    sklib::stream_tcpip_type IO(false, WS_EKEY_PORT);
+    // initialization
 
-    std::cout << "Hello World!\n";
+    if (!ser_autodetect())
+    {
+        std::cout << "Cannot connect to EKey, exiting...\n";
+        return -1;
+    }
+
+    Interface Serial(ser_getchar, ser_putchar);
+
+    std::cout << "Query: 1\n";
+    uint8_t Code = (uint8_t)KeyFunction::prime_keys;
+    Serial.write_output(&Code, 1);
+
+    std::cout << "Data: " << KEY_SIZE << "\n";
+    for (unsigned k = 0; k < KEY_SIZE; k++) BUFFER[k] = ~k;
+    Serial.write_output(BUFFER, KEY_SIZE);
+
+    std::cout << "Received: " << Serial.read_input(&Code, 1) << "\n";
+    std::cout << "Code = " << (unsigned)Code << "\n";
+
+    return 0;
 }

@@ -12,11 +12,10 @@
 #include <SKLib/sklib.hpp>
 #include "ekey-model.h"
 
-// Shared IO settings, common IO functions
+// Shared IO settings, common IO functions, KEY, BLOCK sizes, counts
 #include "interface.h"
 
-// KEY_COUNT, KEY_SIZE     - key storage
-// BLOCK_COUNT, BLOCK_SIZE - file storage
+// I/O with hardware (or model), and with serial line
 #include "hardware_model.h"
 
 static_assert(KEY_SIZE == sklib::supplement::bits_data_mask<uint8_t>() + 1, "Key size and uint8_t range must be the same");
@@ -75,19 +74,14 @@ int find_key_index(uint8_t* pattern)
 *   status= => return error status, including CRC test
 */
 
+/* //sk delete
 static const int keySize        = 256;
 static const int keyAddrSize    = 1;
 static const int recordSize     = 1024;
 static const int recordAddrSize = 2;
 static const int crcSize        = 4;
+*/
 
-enum class KeyFunction {
-    prime_keys = 0x11,
-    write_key  = 0x22,
-    erase_keys = 0x33,
-    get_noise  = 0x44,
-    get_record = 0x55,
-    put_record = 0x66 };
 
 
 void func_prime_keys();
@@ -167,9 +161,19 @@ int main()
         }
         else if (L == 1)
         {
+            uint8_t Rcode = (uint8_t)KeyResponse::NAK;
+
             switch (BUFFER[0])
             {
-            case (int)KeyFunction::prime_keys:; // remember rotator, build index
+            case (int)KeyFunction::prime_keys: // remember rotator, build index
+                if (Serial.read_input(BUFFER, KEY_SIZE) == KEY_SIZE)
+                {
+                    for (unsigned k = 0; k < KEY_SIZE; k++) KeyPermutation[k] = BUFFER[k];
+                    recalculate_key_sorting();
+                    Rcode = (uint8_t)KeyResponse::ACK;
+                }
+                Serial.write_output(&Rcode, 1);
+                break;
             }
 
         }
@@ -177,9 +181,11 @@ int main()
     }
 }
 
+/*
 void func_prime_keys();
 void func_write_key();
 void func_erase_keys();
 void func_get_noise();
 void func_get_record();
 void func_put_record();
+*/

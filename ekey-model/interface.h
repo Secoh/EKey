@@ -28,6 +28,20 @@
 
 #pragma once
 
+// stream tokens
+
+enum class KeyFunction {
+    prime_keys = 0x11,
+    write_key  = 0x22,
+    erase_keys = 0x33,
+    get_noise  = 0x44,
+    get_record = 0x55,
+    put_record = 0x66 };
+
+enum class KeyResponse {
+    ACK = 0xA5,
+    NAK = 0x5A };
+
 // data sizes
 
 static const unsigned KEY_COUNT = sklib::OCTET_ADDRESS_SPAN;    // keys are arranged in pairs

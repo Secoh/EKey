@@ -23,13 +23,16 @@ static self_init CHECK;
 static std::shared_ptr<uint8_t> KEY_STORE_ROOT;
 static std::shared_ptr<uint8_t> BLOCK_STORE_ROOT;
 static sklib::stream_tcpip_type SOCKET_IO(true, SOCKET_EKEY_PORT);  // server mode
-static bool MODE_RECEIVE = true;
+static bool MODE_RECEIVE = false;
 
 void hdw_init()
 {
     srand((unsigned)time(nullptr));
     KEY_STORE_ROOT = std::shared_ptr<uint8_t>(new uint8_t[2*KEY_COUNT*KEY_SIZE]());      // arrays are initialized with all 0-s
     BLOCK_STORE_ROOT = std::shared_ptr<uint8_t>(new uint8_t[BLOCK_COUNT*BLOCK_SIZE]());
+
+    fputs("EKey simulation ON\n", stdout);
+    fflush(stdout);
 }
 
 uint8_t* hdw_get_key_ptr(uint8_t idx)
