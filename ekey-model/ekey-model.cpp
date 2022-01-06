@@ -166,7 +166,7 @@ int main()
             switch (BUFFER[0])
             {
             case (int)KeyFunction::prime_keys: // remember rotator, build index
-                if (Serial.read_input(BUFFER, KEY_SIZE) == KEY_SIZE)
+                if (Serial.read_input_wait(BUFFER, KEY_SIZE) == KEY_SIZE)
                 {
                     for (unsigned k = 0; k < KEY_SIZE; k++) KeyPermutation[k] = BUFFER[k];
                     recalculate_key_sorting();

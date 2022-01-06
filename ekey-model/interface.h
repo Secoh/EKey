@@ -78,6 +78,7 @@ class Interface
 private:
     sklib::base64_type IO;  // will be initialized in constructor
     static constexpr unsigned crc_size = 2;
+    static constexpr auto read_delay = 500_ms_sklib;
 
 public:
     Interface(bool (*cget)(int&), void (*cput)(int)) : IO(cget, cput) {}
@@ -101,7 +102,7 @@ public:
         IO.have_errors();                                     // clear error
         if (!IO.read_decode(sym_in) || sym_in < 0) return 0;  // no wait if idle or EOF
 
-        sklib::timer_stopwatch_type timeout(500_ms_sklib);
+        sklib::timer_stopwatch_type timeout(read_delay);
         buffer[pos_in++] = sym_in;
 
         while (!timeout)  // break for error condition
@@ -128,6 +129,17 @@ public:
         }
 
         IO.reset();
+        return 0;
+    }
+
+    // version with wait for the read to arrive
+    unsigned read_input_wait(uint8_t* buffer, unsigned block_len)
+    {
+        sklib::timer_stopwatch_type timeout(read_delay);
+        while (!timeout)
+        {
+            if (read_input(buffer, block_len)) return block_len;
+        }
         return 0;
     }
 

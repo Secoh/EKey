@@ -40,8 +40,8 @@ int main()
     for (unsigned k = 0; k < KEY_SIZE; k++) BUFFER[k] = ~k;
     Serial.write_output(BUFFER, KEY_SIZE);
 
-    std::cout << "Received: " << Serial.read_input(&Code, 1) << "\n";
-    std::cout << "Code = " << (unsigned)Code << "\n";
+    std::cout << "Received: " << Serial.read_input_wait(BUFFER, 1) << "\n";
+    std::cout << "Code = " << (unsigned)BUFFER[0] << "\n";
 
     return 0;
 }
